@@ -1,0 +1,33 @@
+appId: com.aindataai.app # Update this with your actual bundle ID from app.json
+---
+- launchApp
+
+# Fluxo de Login Hub
+- tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Email"
+- inputText: "hub@teste.com"
+- tapOn: "Senha"
+- inputText: "123456"
+- tapOn: "Cadastrar"
+- assertVisible: "Quem é você?"
+- tapOn: "Responsável (Hub)"
+- assertVisible: "Meus Conectados"
+
+# Logout
+- tapOn: "logout" # Assumes icon name or accessibilityLabel
+- assertVisible: "Entrar"
+
+# Fluxo Conectado
+- tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Email"
+- inputText: "user@teste.com"
+- tapOn: "Senha"
+- inputText: "123456"
+- tapOn: "Cadastrar"
+- assertVisible: "Quem é você?"
+- tapOn: "Conectado"
+- assertVisible: "ESTOU BEM"
+
+# Check-in
+- tapOn: "ESTOU BEM"
+- assertVisible: "Último check-in"

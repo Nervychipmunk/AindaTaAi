@@ -11,6 +11,7 @@ interface AuthState {
     initialize: () => Promise<void>;
     signOut: () => Promise<void>;
     refreshProfile: () => Promise<void>;
+    registerPushToken: (token: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -18,6 +19,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
     profile: null,
     isLoading: true,
+
+    registerPushToken: async (token: string) => {
+        const { user } = get();
+        if (!user) return;
+
+        await supabase.from('profiles').update({ push_token: token }).eq('id', user.id);
+    },
 
     initialize: async () => {
         try {

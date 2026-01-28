@@ -13,11 +13,14 @@ const theme = {
   },
 };
 
+import { registerForPushNotificationsAsync } from './src/services/notificationService';
+
 export default function App() {
   const { isLoading, initialize } = useAuthStore();
 
   useEffect(() => {
     initialize();
+    registerForPushNotificationsAsync();
   }, []);
 
   if (isLoading) {
