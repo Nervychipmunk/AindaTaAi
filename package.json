@@ -12,6 +12,7 @@
     "e2e": "set JAVA_HOME=c:\\repoTCC\\jdk17&& set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;c:\\repoTCC\\jdk17\\bin;%PATH%&& node scripts/run_e2e.js"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/native": "^7.1.28",
     "@react-navigation/native-stack": "^7.11.0",
     "@supabase/supabase-js": "^2.93.2",
