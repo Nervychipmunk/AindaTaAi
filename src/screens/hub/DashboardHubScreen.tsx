@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { Appbar, List, FAB, Portal, Dialog, TextInput, Button, Avatar, Text, ActivityIndicator } from 'react-native-paper';
 import { useAuthStore } from '../../store/authStore';
 import { useConnectionStore } from '../../store/connectionStore';
@@ -40,8 +40,14 @@ export default function DashboardHubScreen() {
         if (result.error) {
             Alert.alert('Erro', result.error);
         } else {
-            Alert.alert('Sucesso', 'Conexão adicionada!');
-            hideDialog();
+            Alert.alert('Sucesso', 'Conexão adicionada!', [
+                {
+                    text: 'OK', onPress: () => {
+                        hideDialog();
+                        fetchConnections(); // Ensure list is refreshed
+                    }
+                }
+            ]);
         }
     };
 
@@ -55,17 +61,20 @@ export default function DashboardHubScreen() {
 
     const renderItem = ({ item }: { item: any }) => {
         const lastRequest = latestCheckins[item.connected_id];
-        const statusText = item.status === 'pending' ? 'Convite Pendente' : (lastRequest ? `Check-in: ${lastRequest.status}` : 'Sem dados recentes');
+        const statusText = item.status === 'pending'
+            ? 'Convite Pendente'
+            : (lastRequest?.status ? `Check-in: ${lastRequest.status}` : 'Sem dados recentes');
+
         const statusColor = item.status === 'pending' ? 'orange' : getStatusColor(lastRequest?.status);
+        const displayName = item.connected_user?.full_name || 'Usuário sem nome';
 
         return (
-            <List.Item
-                title={item.connected_user?.full_name || 'Usuário sem nome'}
-                description={statusText}
-                left={props => <Avatar.Icon {...props} icon="account" style={{ backgroundColor: statusColor }} />}
-                right={props => <List.Icon {...props} icon="chevron-right" />}
-                style={styles.listItem}
-            />
+            <View style={{ padding: 12, backgroundColor: 'white', marginBottom: 8, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{String(displayName)}</Text>
+                <Text style={{ color: statusColor === 'green' ? 'green' : statusColor === 'red' ? 'red' : '#666' }}>
+                    {String(statusText)}
+                </Text>
+            </View>
         )
     };
 
@@ -73,7 +82,19 @@ export default function DashboardHubScreen() {
         <View style={styles.container}>
             <Appbar.Header>
                 <Appbar.Content title="Meus Conectados" />
-                <Appbar.Action icon="logout" onPress={() => signOut()} />
+                {/* Wrapped in a custom view to ensure hit area and z-index if needed, though Appbar.Action usually works well. 
+                    Adding a transparent overlay touchable if necessary, but trying standard Appbar.Action with testID first 
+                    as it was working before the native refactor. 
+                    Reverting to Appbar.Action but with a specific style hack if needed? 
+                    Actually, the original Appbar.Action with testID WAS working for click, just the Assertion failed later.
+                    Let's stick to standard Appbar.Action which handles layout correctly.
+                */}
+                <Appbar.Action
+                    icon="logout"
+                    onPress={() => signOut()}
+                    accessibilityLabel="logout-button"
+                    testID="logout-button"
+                />
             </Appbar.Header>
 
             {isLoading && connections.length === 0 ? (

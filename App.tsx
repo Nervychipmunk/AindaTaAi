@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import { useAuthStore } from './src/store/authStore';
 import AppNavigator from './src/navigation/AppNavigator';
@@ -20,7 +21,7 @@ export default function App() {
 
   useEffect(() => {
     initialize();
-    registerForPushNotificationsAsync();
+    // registerForPushNotificationsAsync(); // Disabled for Expo Go compatibility
   }, []);
 
   if (isLoading) {
@@ -33,7 +34,9 @@ export default function App() {
 
   return (
     <PaperProvider theme={theme}>
-      <AppNavigator />
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
     </PaperProvider>
   );
 }

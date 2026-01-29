@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Button, Title, Text, Card } from 'react-native-paper';
-import { supabase } from '../../lib/supabase';
-import { useAuthStore } from '../../store/authStore';
+import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 
 export default function RoleSelectionScreen() {
     const [loading, setLoading] = useState(false);

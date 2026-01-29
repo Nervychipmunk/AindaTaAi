@@ -10,6 +10,7 @@ interface ConnectionWithProfile extends Connection {
 interface ConnectionState {
     connections: ConnectionWithProfile[];
     pendingInvites: ConnectionWithProfile[];
+    activeMonitors: ConnectionWithProfile[];
     isLoading: boolean;
 
     // Hub actions
@@ -18,6 +19,7 @@ interface ConnectionState {
 
     // Connected actions
     fetchPendingInvites: () => Promise<void>;
+    fetchActiveMonitors: () => Promise<void>;
     respondToInvite: (connectionId: string, accept: boolean) => Promise<void>;
 }
 
@@ -117,6 +119,31 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
         set({ isLoading: false });
     },
 
+    activeMonitors: [],
+
+    fetchActiveMonitors: async () => {
+        set({ isLoading: true });
+        const { data, error } = await supabase
+            .from('connections')
+            .select(`
+        *,
+        hub_user:profiles!hub_id(full_name) 
+      `)
+            .eq('status', 'active');
+
+        if (!error && data) {
+            const userId = (await supabase.auth.getUser()).data.user?.id;
+            const myMonitors = data.filter((c: any) => c.connected_id === userId);
+
+            const formatted = myMonitors.map((item: any) => ({
+                ...item,
+                hub_user: item.hub_user
+            }));
+            set({ activeMonitors: formatted });
+        }
+        set({ isLoading: false });
+    },
+
     respondToInvite: async (connectionId: string, accept: boolean) => {
         set({ isLoading: true });
         if (accept) {
@@ -128,9 +155,10 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
             await supabase
                 .from('connections')
                 .delete()
-                .eq('id', connectionId); // Or update to 'revoked'
+                .eq('id', connectionId);
         }
         await get().fetchPendingInvites();
+        await get().fetchActiveMonitors(); // Refresh active monitors after responding
         set({ isLoading: false });
     }
 }));

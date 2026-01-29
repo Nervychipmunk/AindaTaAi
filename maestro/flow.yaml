@@ -1,33 +1,92 @@
-appId: com.aindataai.app # Update this with your actual bundle ID from app.json
+appId: host.exp.exponent
 ---
-- launchApp
+- launchApp:
+    clearState: false
 
-# Fluxo de Login Hub
+# 1. Register Hub (v26)
+- assertVisible: "AindaTaAi"
 - tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Nome Completo"
+- inputText: "Hub User v26"
 - tapOn: "Email"
-- inputText: "hub@teste.com"
-- tapOn: "Senha"
+- inputText:  "hub_final_v28@teste.com"
+- tapOn: "Password"
 - inputText: "123456"
 - tapOn: "Cadastrar"
 - assertVisible: "Quem é você?"
-- tapOn: "Responsável (Hub)"
+- tapOn: "Escolher Hub"
 - assertVisible: "Meus Conectados"
-
-# Logout
-- tapOn: "logout" # Assumes icon name or accessibilityLabel
+- assertVisible: "Você ainda não monitora ninguém."
+- tapOn:
+    id: "logout-button"
 - assertVisible: "Entrar"
 
-# Fluxo Conectado
+# 2. Register Connected (v26)
 - tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Nome Completo"
+- inputText: "Connected User v26"
 - tapOn: "Email"
-- inputText: "user@teste.com"
-- tapOn: "Senha"
+- inputText: "user_final_v26@teste.com"
+- tapOn: "Password"
 - inputText: "123456"
 - tapOn: "Cadastrar"
 - assertVisible: "Quem é você?"
-- tapOn: "Conectado"
-- assertVisible: "ESTOU BEM"
+- tapOn: "Escolher Conectado"
+- assertVisible: "Você ainda não tem monitores ativos."
+- tapOn:
+    id: "logout-button"
+- assertVisible: "Entrar"
 
-# Check-in
+# 3. Hub Sends Invite (v26)
+- tapOn: "Email"
+- inputText: "hub_final_v26@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Meus Conectados"
+- tapOn: "Adicionar" # FAB
+- assertVisible: "Adicionar Conectado" # Dialog Title
+- tapOn: "Email do Conectado"
+- inputText: "user_final_v26@teste.com"
+- tapOn: "Adicionar" # Dialog Button
+- extendedWaitUntil:
+    visible: "Conexão adicionada!"
+    timeout: 10000
+# Wait for success alert body text
+- assertVisible: "Conexão adicionada!"
+- tapOn: "OK"
+# Verify it appears in list as pending (Hub view - CRITICAL for User request)
+- assertVisible: "Connected User v28"
+- assertVisible: "Convite Pendente"
+- tapOn:
+    id: "logout-button"
+
+# 4. Connected Accepts Invite & Check-in (v26)
+- tapOn: "Email"
+- inputText: "user_final_v28@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Você ainda não tem monitores ativos." # Initial state
+# Poll Interval (5s) should auto-show it. We wait explicitly for it properly.
+- assertVisible: "Convite de Monitoramento"
+- tapOn: "Aceitar"
+- tapOn: "Confirmar"
+- assertVisible: "ESTOU BEM"
 - tapOn: "ESTOU BEM"
-- assertVisible: "Último check-in"
+# Should match "Sucesso" from the simulated biometrics or real success
+- assertVisible: "Sucesso"
+- tapOn: "OK"
+- tapOn:
+    id: "logout-button"
+
+# 5. Hub Verifies Check-in (v26)
+- tapOn: "Email"
+- inputText: "hub_final_v26@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Meus Conectados"
+- assertVisible: "Connected User v28"
+# Check if status updated from Pending to Confirmed
+- assertVisible: "Check-in: confirmed"

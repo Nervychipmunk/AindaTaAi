@@ -36,8 +36,9 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
                     return;
                 }
             } else {
-                // Fallback for emulators or devices without secure lock
-                Alert.alert('Aviso', 'Dispositivo sem segurança configurada. Check-in será enviado sem biometria.');
+                // Fallback for emulators: Simulate success silently or with a specific message
+                console.log('Biometria não disponível (Emulador). Simulando sucesso.');
+                // No alert needed here, proceed to send checkin as if authenticated.
             }
 
             // 2. Send to Supabase

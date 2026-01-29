@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "e2e": "maestro test maestro/flow.yaml"
+    "android-safe": "set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;%PATH%&& npx expo start --android",
+    "e2e": "set JAVA_HOME=c:\\repoTCC\\jdk17&& set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;c:\\repoTCC\\jdk17\\bin;%PATH%&& node scripts/run_e2e.js"
   },
   "dependencies": {
     "@react-navigation/native": "^7.1.28",
@@ -24,18 +25,19 @@
     "react-native": "0.81.5",
     "react-native-paper": "^5.14.5",
     "react-native-safe-area-context": "^5.6.2",
-    "react-native-screens": "^4.20.0",
-    "react-native-svg": "^15.15.1",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
     "react-native-url-polyfill": "^3.0.0",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "29.5.14",
     "@types/react": "~19.1.0",
+    "babel-preset-expo": "^54.0.10",
     "jest": "^29.7.0",
-    "jest-expo": "^50.0.4",
+    "jest-expo": "~54.0.16",
     "react-test-renderer": "^19.1.0",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"

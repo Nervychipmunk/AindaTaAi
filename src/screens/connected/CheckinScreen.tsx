@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, FlatList, Alert, ScrollView, RefreshControl } from 'react-native';
 import { Text, Button, Card, Title, ActivityIndicator, Appbar } from 'react-native-paper';
 import { useAuthStore } from '../../store/authStore';
 import { useConnectionStore } from '../../store/connectionStore';
@@ -7,11 +7,20 @@ import { useCheckinStore } from '../../store/checkinStore';
 
 export default function CheckinScreen() {
     const { signOut, user } = useAuthStore();
-    const { pendingInvites, fetchPendingInvites, respondToInvite } = useConnectionStore();
+    const { pendingInvites, activeMonitors, fetchPendingInvites, fetchActiveMonitors, respondToInvite, isLoading } = useConnectionStore();
     const { performCheckin, isSending, lastCheckin } = useCheckinStore();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const loadData = useCallback(async () => {
+        setRefreshing(true);
+        await Promise.all([fetchPendingInvites(), fetchActiveMonitors()]);
+        setRefreshing(false);
+    }, []);
 
     useEffect(() => {
-        fetchPendingInvites();
+        loadData();
+        const interval = setInterval(loadData, 5000); // Poll every 5 seconds
+        return () => clearInterval(interval);
     }, []);
 
     const handleRespond = (id: string, accept: boolean) => {
@@ -45,10 +54,15 @@ export default function CheckinScreen() {
         <View style={styles.container}>
             <Appbar.Header>
                 <Appbar.Content title="Check-in" />
-                <Appbar.Action icon="logout" onPress={() => signOut()} />
+                <Appbar.Action icon="logout" onPress={() => signOut()} testID="logout-button" accessibilityLabel="logout-button" />
             </Appbar.Header>
 
-            <View style={styles.content}>
+            <ScrollView
+                contentContainerStyle={styles.content}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={loadData} />
+                }
+            >
                 {pendingInvites.length > 0 && (
                     <View style={styles.invitesSection}>
                         <Title style={styles.sectionTitle}>Convites Pendentes</Title>
@@ -64,30 +78,45 @@ export default function CheckinScreen() {
                 <View style={styles.checkinArea}>
                     <Text variant="headlineMedium" style={styles.greeting}>Olá, {user?.email}</Text>
 
-                    {/* Checkin Button */}
-                    <View style={styles.placeholderButton}>
-                        <Button
-                            mode="contained"
-                            contentStyle={{ height: 120 }}
-                            labelStyle={{ fontSize: 24, fontWeight: 'bold' }}
-                            style={{ borderRadius: 20, justifyContent: 'center' }}
-                            onPress={performCheckin}
-                            loading={isSending}
-                            disabled={isSending}
-                            icon="fingerprint"
-                        >
-                            ESTOU BEM
-                        </Button>
-                        <Text style={{ marginTop: 20, textAlign: 'center', color: '#666' }}>
-                            Toque para confirmar com sua biometria
-                        </Text>
-                        {lastCheckin && (
-                            <Text style={{ marginTop: 10, textAlign: 'center', color: 'green' }}>
-                                Último check-in: {new Date(lastCheckin).toLocaleTimeString()}
+                    {activeMonitors.length > 0 ? (
+                        /* Checkin Button (Only if Active Monitor exists) */
+                        <View style={styles.placeholderButton}>
+                            <Button
+                                mode="contained"
+                                contentStyle={{ height: 120 }}
+                                labelStyle={{ fontSize: 24, fontWeight: 'bold' }}
+                                style={{ borderRadius: 20, justifyContent: 'center' }}
+                                onPress={performCheckin}
+                                loading={isSending}
+                                disabled={isSending}
+                                icon="fingerprint"
+                            >
+                                ESTOU BEM
+                            </Button>
+                            <Text style={{ marginTop: 20, textAlign: 'center', color: '#666' }}>
+                                Toque para confirmar com sua biometria.
+                                Você está sendo monitorado por {activeMonitors.length} pessoa(s).
                             </Text>
-                        )}
-                    </View>       </View>
-            </View>
+                            {lastCheckin && (
+                                <Text style={{ marginTop: 10, textAlign: 'center', color: 'green' }}>
+                                    Último check-in: {new Date(lastCheckin).toLocaleTimeString()}
+                                </Text>
+                            )}
+                        </View>
+                    ) : (
+                        /* Empty State */
+                        <View style={{ alignItems: 'center', padding: 20 }}>
+                            <Text variant="bodyLarge" style={{ textAlign: 'center', color: '#666', marginBottom: 20 }}>
+                                Você ainda não tem monitores ativos.
+                            </Text>
+                            <Text variant="bodyMedium" style={{ textAlign: 'center', color: '#888' }}>
+                                Peça para seu Hub (Responsável) te convidar pelo email ou aceite os convites pendentes acima.
+                                Arraste para baixo para atualizar.
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
         </View>
     );
 }
