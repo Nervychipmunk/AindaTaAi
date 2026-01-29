@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 
@@ -6,9 +7,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: null, // TODO: Add AsyncStorage here for persistence later if needed, default in memory is fine for MVP testing but not prod
+    storage: AsyncStorage,
     autoRefreshToken: true,
-    persistSession: false, // Disabling persistence for now to avoid Async Storage dep issues initially
+    persistSession: true,
     detectSessionInUrl: false,
   },
 });

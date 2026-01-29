@@ -23,11 +23,22 @@ export default function SignUpScreen({ navigation }: any) {
 
         if (error) {
             Alert.alert('Erro no Cadastro', error.message);
+            setLoading(false);
         } else {
-            Alert.alert('Sucesso', 'Verifique seu email para confirmar o cadastro!');
-            navigation.goBack();
+            // Auto-login after signup (workaround for email confirmation)
+            const { error: loginError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (loginError) {
+                // Auto-login failed (email confirmation required)
+                // Navigate back to login screen
+                navigation.navigate('Login');
+            }
+            // Success: Auth state will automatically update and navigate
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (

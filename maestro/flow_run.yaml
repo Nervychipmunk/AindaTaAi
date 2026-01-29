@@ -1,0 +1,43 @@
+appId: host.exp.exponent
+---
+- launchApp:
+    clearState: false
+
+# Esperar App Carregar
+- assertVisible:
+    text: "AindaTaAi"
+
+# Fluxo de Login Hub
+- tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Nome Completo"
+- inputText: "Hub Test User"
+- tapOn: "Email"
+- inputText: "hub_1769653284919@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Cadastrar"
+- assertVisible: "Quem é você?"
+- tapOn: "Responsável (Hub)"
+- assertVisible: "Meus Conectados"
+
+# Logout
+- tapOn:
+    id: "logout-button"
+- assertVisible: "Entrar"
+
+# Fluxo Conectado
+- tapOn: "Não tem conta? Cadastre-se"
+- tapOn: "Nome Completo"
+- inputText: "Connected Test User"
+- tapOn: "Email"
+- inputText: "user_1769653284919@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Cadastrar"
+- assertVisible: "Quem é você?"
+- tapOn: "Conectado"
+- assertVisible: "ESTOU BEM"
+
+# Check-in
+- tapOn: "ESTOU BEM"
+- assertVisible: "Último check-in"
