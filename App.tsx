@@ -17,12 +17,17 @@ const theme = {
 import { registerForPushNotificationsAsync } from './src/services/notificationService';
 
 export default function App() {
-  const { isLoading, initialize } = useAuthStore();
+  const { isLoading, initialize, session } = useAuthStore();
 
   useEffect(() => {
     initialize();
-    // registerForPushNotificationsAsync(); // Disabled for Expo Go compatibility
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      registerForPushNotificationsAsync();
+    }
+  }, [session]);
 
   if (isLoading) {
     return (

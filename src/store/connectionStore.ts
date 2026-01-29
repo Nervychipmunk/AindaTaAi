@@ -16,6 +16,7 @@ interface ConnectionState {
     // Hub actions
     fetchConnections: () => Promise<void>;
     addConnection: (email: string) => Promise<{ error?: string }>;
+    updateDailyCheckinTime: (connectionId: string, time: string) => Promise<{ error?: string }>;
 
     // Connected actions
     fetchPendingInvites: () => Promise<void>;
@@ -31,6 +32,12 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     fetchConnections: async () => {
         set({ isLoading: true });
 
+        const currentUser = (await supabase.auth.getUser()).data.user;
+        if (!currentUser) {
+            set({ connections: [], isLoading: false });
+            return;
+        }
+
         // Fetch connections where I am the Hub
         const { data, error } = await supabase
             .from('connections')
@@ -38,6 +45,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
         *,
         connected_user:profiles!connected_id(*)
       `)
+            .eq('hub_id', currentUser.id)
             .order('created_at', { ascending: false });
 
         if (!error && data) {
@@ -48,6 +56,25 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
             set({ connections: formattedData });
         }
         set({ isLoading: false });
+    },
+
+    updateDailyCheckinTime: async (connectionId: string, time: string) => {
+        set({ isLoading: true });
+        try {
+            const { error } = await supabase
+                .from('connections')
+                .update({ daily_checkin_time: time })
+                .eq('id', connectionId);
+
+            if (error) return { error: error.message };
+
+            await get().fetchConnections();
+            return {};
+        } catch (e: any) {
+            return { error: e.message };
+        } finally {
+            set({ isLoading: false });
+        }
     },
 
     addConnection: async (email: string) => {

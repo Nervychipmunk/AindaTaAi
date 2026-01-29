@@ -2,19 +2,58 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Alert } from 'react-native';
+import { CheckinRequest, Profile } from '../types';
+
+type PendingCheckinRequest = CheckinRequest & {
+    hub_user?: Pick<Profile, 'full_name'>;
+};
 
 interface CheckinState {
     isSending: boolean;
+    isLoading: boolean;
     lastCheckin: string | null;
+    pendingRequests: PendingCheckinRequest[];
 
-    performCheckin: () => Promise<void>;
+    fetchPendingRequests: () => Promise<void>;
+    performCheckin: (requestId: string) => Promise<void>;
 }
 
 export const useCheckinStore = create<CheckinState>((set, get) => ({
     isSending: false,
+    isLoading: false,
     lastCheckin: null,
+    pendingRequests: [],
 
-    performCheckin: async () => {
+    fetchPendingRequests: async () => {
+        set({ isLoading: true });
+        try {
+            const user = (await supabase.auth.getUser()).data.user;
+            if (!user) {
+                set({ pendingRequests: [] });
+                return;
+            }
+
+            const now = new Date().toISOString();
+            const { data, error } = await supabase
+                .from('checkin_requests')
+                .select(`
+                    *,
+                    hub_user:profiles!hub_id(full_name)
+                `)
+                .eq('connected_id', user.id)
+                .eq('status', 'pending')
+                .gt('expires_at', now)
+                .order('due_at', { ascending: true });
+
+            if (!error && data) {
+                set({ pendingRequests: data as PendingCheckinRequest[] });
+            }
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    performCheckin: async (requestId: string) => {
         try {
             set({ isSending: true });
 
@@ -24,71 +63,45 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
 
             if (hasHardware && isEnrolled) {
                 const result = await LocalAuthentication.authenticateAsync({
-                    promptMessage: 'Confirme que você está bem',
-                    fallbackLabel: 'Usar Senha do Celular',
+                    promptMessage: 'Confirme que voce esta bem',
+                    fallbackLabel: 'Usar senha do celular',
                     cancelLabel: 'Cancelar',
                     disableDeviceFallback: false,
                 });
 
                 if (!result.success) {
-                    Alert.alert('Autenticação cancelada', 'Não pudemos confirmar sua identidade.');
+                    Alert.alert('Autenticacao cancelada', 'Nao pudemos confirmar sua identidade.');
                     set({ isSending: false });
                     return;
                 }
             } else {
-                // Fallback for emulators: Simulate success silently or with a specific message
-                console.log('Biometria não disponível (Emulador). Simulando sucesso.');
-                // No alert needed here, proceed to send checkin as if authenticated.
+                console.log('Biometria nao disponivel (Emulador). Simulando sucesso.');
             }
 
-            // 2. Send to Supabase
             const user = (await supabase.auth.getUser()).data.user;
-            if (!user) throw new Error('Usuário não autenticado');
+            if (!user) throw new Error('Usuario nao autenticado');
 
-            // For MVP, we are creating a checkin_response directly.
-            // Ideally, this should link to a request, but we support spontaneous check-ins too.
-            // We will create a dummy request or just insert into responses if schema allows nullable request_id
-            // Reviewing schema: request_id is NOT NULL. So we need a request.
-            // Strategy: Create a "Self-initiated" request first, then respond to it.
-
-            const { data: requestData, error: reqError } = await supabase
+            const { error: updateError } = await supabase
                 .from('checkin_requests')
-                .insert({
-                    // Actually, for spontaneous, let's just pick the first connected hub or self. 
-                    // EDIT: Schema constraint says request_id refers to checkin_requests.
-                    // Let's create a request from "Me" to "Me" just to satisfy FK, or fetch my active hub connections.
+                .update({ status: 'confirmed' })
+                .eq('id', requestId);
 
-                    // Better MVP approach: Find my active connection (Hub)
-                    // If multiple hubs, we broadcast to all? 
-                    // For simplicity: We insert one "Global Checkin" request where hub_id is myself (as a system placeholder) 
-                    // OR we alter schema to make request_id optional.
-
-                    // Let's create a request where hub_id = connected_id (self-checkin)
-                    hub_id: user.id,
-                    connected_id: user.id,
-                    due_at: new Date().toISOString(),
-                    expires_at: new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour
-                    status: 'confirmed'
-                })
-                .select()
-                .single();
-
-            if (reqError) throw reqError;
+            if (updateError) throw updateError;
 
             const { error: respError } = await supabase
                 .from('checkin_responses')
                 .insert({
-                    request_id: requestData.id,
+                    request_id: requestId,
                     connected_id: user.id,
                     auth_method: hasHardware ? 'biometrics' : 'manual',
-                    payload: 'Check-in Espontâneo'
+                    payload: 'Check-in confirmado'
                 });
 
             if (respError) throw respError;
 
             set({ lastCheckin: new Date().toISOString() });
-            Alert.alert('Sucesso', 'Você confirmou que está bem!');
-
+            Alert.alert('Sucesso', 'Voce confirmou que esta bem!');
+            await get().fetchPendingRequests();
         } catch (e: any) {
             console.error(e);
             Alert.alert('Erro', 'Falha ao enviar check-in: ' + e.message);

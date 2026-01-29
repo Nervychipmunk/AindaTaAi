@@ -5,6 +5,7 @@ export interface Profile {
     full_name: string | null;
     role: UserRole;
     avatar_url?: string;
+    push_token?: string | null;
     updated_at?: string;
 }
 
@@ -12,7 +13,8 @@ export interface Connection {
     id: string;
     hub_id: string;
     connected_id: string;
-    status: 'pending' | 'active' | 'revoked';
+    status: 'pending' | 'active';
+    daily_checkin_time?: string | null;
     created_at: string;
 }
 

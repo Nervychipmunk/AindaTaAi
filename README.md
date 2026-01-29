@@ -27,6 +27,12 @@ Aplicativo de monitoramento de segurança pessoal onde "Conectados" confirmam pe
 2. **Configuração do Supabase**:
    - Crie um projeto no Supabase.
    - Rode o script `setup_database.sql` (na raiz do projeto) no SQL Editor do Supabase para criar as tabelas.
+   - Para bases já existentes, rode também `migration_add_schedule.sql` (horário diário + políticas).
+   - Agendamento automático: configure um cron/edge scheduler para executar:
+     - `select public.create_daily_checkins();`
+     - `select public.mark_overdue_checkins();`
+     (sugestão: a cada 1 minuto)
+   - Fuso padrão usado: `America/Sao_Paulo`.
    - Edite o arquivo `src/lib/supabase.ts` com suas chaves:
      - `SUPABASE_URL`
      - `SUPABASE_ANON_KEY`
@@ -36,6 +42,7 @@ Aplicativo de monitoramento de segurança pessoal onde "Conectados" confirmam pe
    npx expo start
    ```
    - Escaneie o QR Code com o app Expo Go (Android/iOS).
+   - Para push: configure `expo.extra.eas.projectId` no `app.json`.
 
 ## 📂 Estrutura do Projeto
 

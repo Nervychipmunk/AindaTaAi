@@ -1,5 +1,6 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 
@@ -40,9 +41,13 @@ export async function registerForPushNotificationsAsync() {
         // Get Expo Push Token
         // In production, we might use getDevicePushTokenAsync for straight FCM, 
         // but Expo Push Service is easier for MVP POC.
-        token = (await Notifications.getExpoPushTokenAsync({
-            projectId: 'your-project-id' // Ideally from app.json
-        })).data;
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+        if (!projectId) {
+            console.log('Missing Expo projectId for push notifications');
+            return;
+        }
+
+        token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
 
         console.log('Expo Push Token:', token);
 
