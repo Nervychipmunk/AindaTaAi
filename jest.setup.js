@@ -1,3 +1,5 @@
+require('@testing-library/jest-native/extend-expect');
+
 // Mock Polyfill
 jest.mock('react-native-url-polyfill/auto', () => { });
 

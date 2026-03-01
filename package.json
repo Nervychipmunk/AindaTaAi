@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "test": "jest",
     "android-safe": "set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;%PATH%&& npx expo start --android",
-    "e2e": "set JAVA_HOME=c:\\repoTCC\\jdk17&& set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;c:\\repoTCC\\jdk17\\bin;%PATH%&& node scripts/run_e2e.js"
+    "e2e": "set JAVA_HOME=c:\\repoTCC\\jdk17&& set ANDROID_HOME=c:\\repoTCC&& set ANDROID_SDK_ROOT=c:\\repoTCC&& set PATH=c:\\repoTCC\\node20;c:\\repoTCC\\platform-tools;c:\\repoTCC\\jdk17\\bin;%PATH%&& node scripts/run_e2e.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

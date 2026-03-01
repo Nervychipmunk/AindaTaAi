@@ -1,43 +1,223 @@
 appId: host.exp.exponent
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+
+# Fechar modais do Expo Go (camera/permissoes)
+- runFlow:
+    when:
+      visible: "ALLOW"
+    commands:
+      - tapOn: "ALLOW"
+
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
+# Abrir o projeto no Expo Go
+- openLink: "exp://192.168.15.4:8101"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 120000
+
+# Se ja estiver logado, sair (fallback)
+- runFlow:
+    when:
+      visible:
+        id: "logout-button"
+    commands:
+      - tapOn:
+          id: "logout-button"
+      - extendedWaitUntil:
+          visible: "Entrar"
+          timeout: 30000
+
+# Se estiver na selecao de perfil, sair
+- runFlow:
+    when:
+      visible: "Escolher Hub"
+    commands:
+      - tapOn: "Sair"
+      - extendedWaitUntil:
+          visible: "Entrar"
+          timeout: 10000
 
 # Esperar App Carregar
-- assertVisible:
-    text: "AindaTaAi"
+- assertVisible: "Entrar"
 
 # Fluxo de Login Hub
-- tapOn: "Não tem conta? Cadastre-se"
+- tapOn:
+    id: "signup-link"
+- extendedWaitUntil:
+    visible: "Criar Conta"
+    timeout: 15000
 - tapOn: "Nome Completo"
 - inputText: "Hub Test User"
 - tapOn: "Email"
-- inputText: "hub_1769653284919@teste.com"
+- inputText: "hub_1769746706195@teste.com"
 - tapOn: "Password"
 - inputText: "123456"
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+- tapOn: "Criar Conta"
 - tapOn: "Cadastrar"
-- assertVisible: "Quem é você?"
-- tapOn: "Responsável (Hub)"
+- extendedWaitUntil:
+    visible: "Escolher Hub"
+    timeout: 15000
+- tapOn: "Escolher Hub"
 - assertVisible: "Meus Conectados"
 
 # Logout
 - tapOn:
     id: "logout-button"
-- assertVisible: "Entrar"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
 
 # Fluxo Conectado
-- tapOn: "Não tem conta? Cadastre-se"
+- tapOn:
+    id: "signup-link"
+- extendedWaitUntil:
+    visible: "Criar Conta"
+    timeout: 15000
 - tapOn: "Nome Completo"
 - inputText: "Connected Test User"
 - tapOn: "Email"
-- inputText: "user_1769653284919@teste.com"
+- inputText: "user_1769746706195@teste.com"
 - tapOn: "Password"
 - inputText: "123456"
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+- tapOn: "Criar Conta"
 - tapOn: "Cadastrar"
-- assertVisible: "Quem é você?"
-- tapOn: "Conectado"
-- assertVisible: "ESTOU BEM"
+- extendedWaitUntil:
+    visible: "Escolher Conectado"
+    timeout: 15000
+- tapOn: "Escolher Conectado"
+- assertVisible: "Nenhum check-in pendente no momento."
 
-# Check-in
-- tapOn: "ESTOU BEM"
-- assertVisible: "Último check-in"
+# Logout
+- tapOn:
+    id: "logout-button"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+
+# Hub envia convite
+- tapOn: "Email"
+- inputText: "hub_1769746706195@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Meus Conectados"
+- tapOn:
+    id: "add-connection-fab"
+- assertVisible: "Adicionar Conectado"
+- tapOn: "Email do Conectado"
+- inputText: "user_1769746706195@teste.com"
+- hideKeyboard
+- tapOn:
+    id: "add-connection-submit"
+- runFlow:
+    when:
+      visible: "Conexao adicionada!"
+    commands:
+      - tapOn: "OK"
+- runFlow:
+    when:
+      visible: "Erro"
+    commands:
+      - tapOn: "OK"
+      - tapOn: "Email do Conectado"
+      - inputText: "user_1769746706195@teste.com"
+      - hideKeyboard
+      - tapOn:
+          id: "add-connection-submit"
+      - runFlow:
+          when:
+            visible: "Conexao adicionada!"
+          commands:
+            - tapOn: "OK"
+- extendedWaitUntil:
+    visible: "Convite pendente"
+    timeout: 20000
+- tapOn:
+    id: "logout-button"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+
+# Conectado aceita convite
+- tapOn: "Email"
+- inputText: "user_1769746706195@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- extendedWaitUntil:
+    visible: "Convite de Monitoramento"
+    timeout: 30000
+- tapOn: "Aceitar"
+- extendedWaitUntil:
+    visible: "Confirmar"
+    timeout: 10000
+- tapOn: "Confirmar"
+- assertVisible: "Nenhum check-in pendente no momento."
+- tapOn:
+    id: "logout-button"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+
+# Hub define horario diario
+- tapOn: "Email"
+- inputText: "hub_1769746706195@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Meus Conectados"
+- tapOn: "Definir horario"
+- assertVisible: "Horario diario"
+- tapOn: "Horario"
+- inputText: "01:19"
+- tapOn:
+    id: "save-schedule"
+- tapOn:
+    id: "logout-button"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+
+# Conectado aguarda check-in
+- tapOn: "Email"
+- inputText: "user_1769746706195@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- extendedWaitUntil:
+    visible: "Check-ins Pendentes"
+    timeout: 120000
+- tapOn: "Confirmar"
+- assertVisible: "Sucesso"
+- tapOn: "OK"
+
+# Hub verifica status
+- tapOn:
+    id: "logout-button"
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+- tapOn: "Email"
+- inputText: "hub_1769746706195@teste.com"
+- tapOn: "Password"
+- inputText: "123456"
+- tapOn: "Entrar"
+- assertVisible: "Meus Conectados"
+- assertVisible: "Check-in: confirmed"

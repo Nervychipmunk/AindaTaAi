@@ -15,6 +15,12 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotificationsAsync() {
+    // Avoid Expo Go crashes: skip if push not supported
+    if (Constants.appOwnership === 'expo') {
+        console.log('Push notifications skipped in Expo Go');
+        return;
+    }
+
     let token;
 
     if (Platform.OS === 'android') {
@@ -38,9 +44,6 @@ export async function registerForPushNotificationsAsync() {
             return;
         }
 
-        // Get Expo Push Token
-        // In production, we might use getDevicePushTokenAsync for straight FCM, 
-        // but Expo Push Service is easier for MVP POC.
         const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
         if (!projectId) {
             console.log('Missing Expo projectId for push notifications');
@@ -51,7 +54,6 @@ export async function registerForPushNotificationsAsync() {
 
         console.log('Expo Push Token:', token);
 
-        // Save to user profile
         await useAuthStore.getState().registerPushToken(token);
 
     } else {

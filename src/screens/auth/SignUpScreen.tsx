@@ -78,6 +78,8 @@ export default function SignUpScreen({ navigation }: any) {
                     loading={loading}
                     disabled={loading}
                     style={styles.button}
+                    testID="signup-submit"
+                    accessibilityLabel="signup-submit"
                 >
                     Cadastrar
                 </Button>

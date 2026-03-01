@@ -57,6 +57,8 @@ export default function LoginScreen({ navigation }: any) {
                     mode="text"
                     onPress={() => navigation.navigate('SignUp')}
                     style={styles.linkButton}
+                    testID="signup-link"
+                    accessibilityLabel="signup-link"
                 >
                     Não tem conta? Cadastre-se
                 </Button>

@@ -171,6 +171,8 @@ export default function DashboardHubScreen() {
                 style={styles.fab}
                 onPress={showDialog}
                 label="Adicionar"
+                testID="add-connection-fab"
+                accessibilityLabel="add-connection-fab"
             />
 
             <Portal>
@@ -190,7 +192,15 @@ export default function DashboardHubScreen() {
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button onPress={hideDialog}>Cancelar</Button>
-                        <Button onPress={handleAddConnection} loading={adding} disabled={adding}>Adicionar</Button>
+                        <Button
+                            onPress={handleAddConnection}
+                            loading={adding}
+                            disabled={adding}
+                            testID="add-connection-submit"
+                            accessibilityLabel="add-connection-submit"
+                        >
+                            Adicionar
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -212,7 +222,15 @@ export default function DashboardHubScreen() {
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button onPress={hideScheduleDialog}>Cancelar</Button>
-                        <Button onPress={handleSaveSchedule} loading={savingSchedule} disabled={savingSchedule}>Salvar</Button>
+                        <Button
+                            onPress={handleSaveSchedule}
+                            loading={savingSchedule}
+                            disabled={savingSchedule}
+                            testID="save-schedule"
+                            accessibilityLabel="save-schedule"
+                        >
+                            Salvar
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>

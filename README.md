@@ -1,39 +1,48 @@
-# AindaTaAi - Safety Check-in App (MVP TCC)
+# AindaTaAi
 
-Aplicativo de monitoramento de segurança pessoal onde "Conectados" confirmam periodicamente seu bem-estar para "Responsáveis" (Hubs). Desenvolvido como MVP para Trabalho de Conclusão de Curso.
+Aplicativo de monitoramento de segurança pessoal onde **Conectados** confirmam periodicamente seu bem-estar para **Responsáveis** (Hubs). Se um check-in não for confirmado a tempo, o Hub é notificado imediatamente.
 
 ## 📱 Tecnologias
 
-- **Frontend**: React Native (via Expo SDK 50+)
+- **Frontend**: React Native (Expo SDK 54)
 - **Linguagem**: TypeScript
 - **Estado Global**: Zustand
-- **Backend (BaaS)**: Supabase (PostgreSQL, Auth, Realtime)
+- **Backend (BaaS)**: Supabase (PostgreSQL, Auth, Realtime, Edge Functions)
 - **UI**: React Native Paper + Lucide Icons
+- **Autenticação biométrica**: expo-local-authentication
+- **Push Notifications**: expo-notifications
 
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
+
 - Node.js (v18+)
 - Conta no [Supabase](https://supabase.com)
 - Expo Go instalado no celular (ou Emulador Android/iOS)
 
 ### Instalação
 
-1. **Clone o repositório** e instale as dependências:
+1. Clone o repositório e instale as dependências:
    ```bash
    npm install
    ```
 
 2. **Configuração do Supabase**:
    - Crie um projeto no Supabase.
-   - Rode o script `setup_database.sql` (na raiz do projeto) no SQL Editor do Supabase para criar as tabelas.
-   - Para bases já existentes, rode também `migration_add_schedule.sql` (horário diário + políticas).
-   - Agendamento automático: configure um cron/edge scheduler para executar:
+   - Rode o script `setup_database.sql` no SQL Editor para criar as tabelas.
+   - Para bases já existentes, rode também:
+     - `migration_add_schedule.sql` (horário diário + políticas)
+     - `migration_add_notifications.sql` (fila de push + triggers)
+     - `migration_add_token.sql` (push_token no perfil)
+   - Agendamento automático — configure um cron para executar:
      - `select public.create_daily_checkins();`
      - `select public.mark_overdue_checkins();`
-     (sugestão: a cada 1 minuto)
-   - Fuso padrão usado: `America/Sao_Paulo`.
-   - Edite o arquivo `src/lib/supabase.ts` com suas chaves:
+   - Push (Edge Function):
+     - Deploy da função `process-notifications` (pasta `supabase/functions/process-notifications`).
+     - Habilite a extensão `pg_net`.
+     - Crie um job HTTP (POST) para `https://<seu-projeto>.functions.supabase.co/process-notifications`.
+   - Fuso padrão: `America/Sao_Paulo`.
+   - Edite `src/lib/supabase.ts` com suas chaves:
      - `SUPABASE_URL`
      - `SUPABASE_ANON_KEY`
 
@@ -41,27 +50,39 @@ Aplicativo de monitoramento de segurança pessoal onde "Conectados" confirmam pe
    ```bash
    npx expo start
    ```
-   - Escaneie o QR Code com o app Expo Go (Android/iOS).
-   - Para push: configure `expo.extra.eas.projectId` no `app.json`.
+   Escaneie o QR Code com o Expo Go (Android/iOS).
 
 ## 📂 Estrutura do Projeto
 
-- `src/screens`: Telas do aplicativo (Login, Dashboard, Check-in).
-- `src/navigation`: Configuração de rotas (Login -> Logado).
-- `src/store`: Gerenciamento de estado global (Auth, Dados).
-- `src/services`: Funções de interação com APIs (não implementado ainda, usando direto no componente por enquanto).
-- `src/lib`: Configurações de bibliotecas (Supabase).
-- `src/types`: Definições de Tipos TypeScript (Interfaces de Banco de Dados).
+```
+src/
+├── screens/          # Telas (Auth, Dashboard, Check-in, Role Selection)
+├── navigation/       # Configuração de rotas
+├── store/            # Estado global (Auth, Check-in, Conexões, Monitoramento)
+├── services/         # Interação com APIs
+├── lib/              # Configurações (Supabase)
+└── types/            # Tipos TypeScript
+```
 
-## ✅ Features (MVP)
+## 🧪 Testes
 
-- [x] Autenticação (Login/Cadastro)
-- [x] Seleção de Perfil (Hub vs Conectado)
-- [ ] Conexão entre Hub e Usuário
-- [ ] Check-in com Confirmação Biométrica
-- [ ] Monitoramento em Tempo Real
-- [ ] Notificações de Atraso
+```bash
+# Testes unitários
+npm test
+
+# Testes E2E (Maestro)
+npm run e2e
+```
+
+## ✅ Features
+
+- Autenticação (Login / Cadastro)
+- Seleção de Perfil (Hub vs Conectado)
+- Conexão entre Hub e Usuário
+- Check-in com Confirmação Biométrica
+- Monitoramento em Tempo Real
+- Notificações Push de Atraso
 
 ## 📄 Licença
 
-Projeto acadêmico - PUC-RS.
+Projeto acadêmico — PUC-RS.
