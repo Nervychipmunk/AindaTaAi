@@ -1,0 +1,9 @@
+appId: host.exp.exponent
+---
+- launchApp:
+    clearState: false
+- tapOn: "Não tem conta? Cadastre-se"
+- extendedWaitUntil:
+    visible: "Criar Conta"
+    timeout: 20000
+- tapOn: "Nome Completo"
