@@ -3,12 +3,12 @@
 -- instead of opening up the entire profiles table.
 
 create or replace function get_user_by_email(email_input text)
-returns table (id uuid, full_name text)
+returns table (id uuid, full_name text, role text)
 security definer -- Runs with privileges of the creator (admin), bypassing RLS
 as $$
 begin
   return query
-  select p.id, p.full_name
+  select p.id, p.full_name, p.role
   from auth.users u
   join public.profiles p on u.id = p.id
   where u.email = email_input;
