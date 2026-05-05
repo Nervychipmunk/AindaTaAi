@@ -91,7 +91,13 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
             }
 
             const currentUser = (await supabase.auth.getUser()).data.user;
-            if (userData.id === currentUser?.id) {
+            if (!currentUser) {
+                set({ isLoading: false });
+                return { error: 'Usuário não autenticado.' };
+            }
+
+            // Compare IDs as strings to ensure proper equality check
+            if (String(userData.id) === String(currentUser.id)) {
                 set({ isLoading: false });
                 return { error: 'Você não pode conectar a si mesmo.' };
             }
